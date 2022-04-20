@@ -9,15 +9,13 @@ ENV PYTHONFAULTHANDLER 1
 
 COPY Pipfile .
 COPY Pipfile.lock .
-RUN pipenv install --deploy
+RUN pipenv lock -r > requirements.txt
+RUN pip install -r requirements.txt
 
-COPY --from=python-deps /.venv /.venv
-ENV PATH="/.venv/bin:$PATH"
-
-RUN useradd --create-home appuser
+RUN useradd -ms /bin/bash appuser
 WORKDIR /home/appuser
 USER appuser
 
 COPY . .
-# ENTRYPOINT ["python", "-m", "http.server"]
-CMD ["python"]
+ENV PYTHONPATH=.
+ENTRYPOINT FLASK_APP=/home/appuser/services/service.py flask run --host=0.0.0.0
