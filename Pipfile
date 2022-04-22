@@ -8,6 +8,7 @@ flask = "*"
 flask-restful = "*"
 cloudant = "*"
 jsonpickle = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

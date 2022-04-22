@@ -20,6 +20,7 @@ def get_apa_action_type(lookup_id):
 def find_agreement_statuses():
     return get_item_list('agreement_status')
 
+
 @lookup_blueprint.route('/pmp/AgreementStatus/<lookup_id>', methods=['GET'])
 def get_agreement_status(lookup_id):
     document = get_item(lookup_id)
@@ -75,13 +76,6 @@ def get_item(lookup_id):
     document = Document(connector.lookup_database, lookup_id)
     document.fetch()
     return document
-    # connector = couchdb.db_client
-    # design = connector.lookup_database.get_design_document('_design/lookup')
-    # view = design.get_view(view_name)
-    # with view.custom_result(key=lookup_id) as rslt:
-    #     item = rslt[:]
-    #     if len(item) == 1:
-    #         return item[0]
 
 
 def get_item_list(view_name):
