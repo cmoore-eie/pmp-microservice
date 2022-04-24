@@ -18,7 +18,7 @@ class VirtualProductTest(unittest.TestCase):
         self.assertIsNotNone(self.virtual_model.item_identifier)
         self.assertIsNotNone(self.virtual_model.name)
         self.assertIsNone(self.virtual_model.code)
-        self.assertIsNone(self.virtual_model.item_status)
+        self.assertIsNotNone(self.virtual_model.item_status)
         self.assertTrue(len(self.virtual_model.virtual_product_categories) == 0)
         self.assertTrue(len(self.virtual_model.virtual_product_contracts) == 0)
         self.assertTrue(len(self.virtual_model.virtual_product_flavours) == 0)

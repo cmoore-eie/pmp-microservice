@@ -1,9 +1,10 @@
+import time
 import unittest
 
 from models.lookup_model import Lookup
 from services import service
 from services.http_status import HttpStatus
-from services.pmptypes import PMPTypes
+from services.pmp_lookup import PMPLookupCodes
 
 
 class LookupTest(unittest.TestCase):
@@ -14,58 +15,42 @@ class LookupTest(unittest.TestCase):
     def tearDown(self) -> None:
         pass
 
-    def test_get_apa_action_type(self):
-        response = self.list_response('/pmp/APAActionTypes')
-        response_json = response.json
-        for item in response_json:
-            self.item_response('/pmp/APAActionType', item["id"])
-
-    def test_get_agreement_status(self):
-        response = self.list_response('/pmp/AgreementStatuses')
-        response_json = response.json
-        for item in response_json:
-            self.item_response('/pmp/AgreementStatus', item["id"])
-
-    def test_get_agreement_type(self):
-        response = self.list_response('/pmp/AgreementTypes')
-        response_json = response.json
-        for item in response_json:
-            self.item_response('/pmp/AgreementType', item["id"])
-
-    def test_get_item_status(self):
-        response = self.list_response('/pmp/ItemStatuses')
-        response_json = response.json
-        for item in response_json:
-            self.item_response('/pmp/ItemStatus', item["id"])
-
-    def test_get_virtual_flavour_action(self):
-        response = self.list_response('/pmp/VirtualFlavourActions')
-        response_json = response.json
-        for item in response_json:
-            self.item_response('/pmp/VirtualFlavourAction', item["id"])
-
-    def test_get_virtual_product_type(self):
-        response = self.list_response('/pmp/VirtualProductTypes')
-        response_json = response.json
-        for item in response_json:
-            self.item_response('/pmp/VirtualProductType', item["id"])
-
-    def list_response(self, item_url):
-        response = self.tester.get(item_url)
-        statuscode = response.status_code
-        self.assertTrue(HttpStatus.is_success(statuscode))
-        self.assertIsNotNone(response.json)
-        return response
+    def test_by_codes(self):
+        for item_type in PMPLookupCodes:
+            start_time = time.time()
+            url = f'/pmp/{item_type.value}'
+            response = self.tester.get(url)
+            statuscode = response.status_code
+            self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
+            self.assertIsNotNone(response.json)
+            for item in response.json:
+                self.item_response(f'{item_type.value}', item.get('key'))
+            for item in response.json:
+                self.item_response_by_code(f'{item_type.value}', item.get('value'))
+            end_time = time.time()
+            print(f'Processed - {item_type.value} - {end_time - start_time}')
 
     def item_response(self, item_url, item_id):
-        url = f'{item_url}/{item_id}'
+        url = f'/pmp/{item_url}/{item_id}'
         test_response = self.tester.get(url)
-        test_response_json = test_response.json
-        model = Lookup().from_json(test_response_json)
-        self.assertTrue(model.type, PMPTypes.lookup_apa_action_type.value)
-        self.assertEqual(model.id, test_response_json['_id'])
-        self.assertEqual(model.code, test_response_json['code'])
-        self.assertEqual(model.name, test_response_json['name'])
+        self.assertIsNotNone(test_response.json['_id'], f'while processing {url}')
+        self.assertIsNotNone(test_response.json['code'], f'while processing {url}')
+        self.assertIsNotNone(test_response.json['name'], f'while processing {url}')
+        model = Lookup().from_json(test_response.json)
+        self.assertEqual(model.id, test_response.json['_id'], f'while processing {url}')
+        self.assertEqual(model.code, test_response.json['code'], f'while processing {url}')
+        self.assertEqual(model.name, test_response.json['name'], f'while processing {url}')
+
+    def item_response_by_code(self, item_url, item_id):
+        url = f'/pmp/{item_url}/codes/{item_id}'
+        test_response = self.tester.get(url)
+        self.assertIsNotNone(test_response.json['_id'], f'while processing {url}')
+        self.assertIsNotNone(test_response.json['code'], f'while processing {url}')
+        self.assertIsNotNone(test_response.json['name'], f'while processing {url}')
+        model = Lookup().from_json(test_response.json)
+        self.assertEqual(model.id, test_response.json['_id'], f'while processing {url}')
+        self.assertEqual(model.code, test_response.json['code'], f'while processing {url}')
+        self.assertEqual(model.name, test_response.json['name'], f'while processing {url}')
 
 
 if __name__ == '__main__':

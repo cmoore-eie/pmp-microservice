@@ -5,6 +5,7 @@ from cloudant.error import CloudantDatabaseException
 from dotenv import dotenv_values
 from requests.adapters import HTTPAdapter
 
+from database.dblookup import DBLookup
 from services.pmp_databases import PMPDatabases
 
 httpAdapter = HTTPAdapter(pool_connections=10, pool_maxsize=100)
@@ -17,6 +18,7 @@ class CouchDBConnector:
         self.lookup_database = None
         self.virtual_product_database = None
         self.scheme_database = None
+        self.test_database = None
         config = dotenv_values(os.environ.get('PMP_MICROSERVICE_CONFIG'))
         self.db_user = config.get('COUCHDB_USER')
         self.db_password = config.get('COUCHDB_PASSWORD')
@@ -30,6 +32,7 @@ class CouchDBConnector:
 
         try:
             self.lookup_database = self.client.create_database(PMPDatabases.lookup.value)
+            DBLookup(self.lookup_database).create_view()
         except CloudantDatabaseException:
             self.lookup_database = self.client[PMPDatabases.lookup.value]
 
@@ -42,6 +45,12 @@ class CouchDBConnector:
             self.scheme_database = self.client.create_database(PMPDatabases.scheme.value)
         except CloudantDatabaseException:
             self.scheme_database = self.client[PMPDatabases.scheme.value]
+
+        try:
+            self.test_database = self.client.create_database("pmp-test")
+            DBLookup(self.test_database).create_view()
+        except CloudantDatabaseException:
+            self.test_database = self.client["pmp-test"]
 
 
 db_client = CouchDBConnector()

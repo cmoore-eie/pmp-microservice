@@ -38,8 +38,8 @@ class VirtualProductTest(unittest.TestCase):
             self.assertEqual(response.json['effective_date'], model.effective_date)
             self.assertEqual(response.json['_id'], model.item_identifier)
 
-        for item_id in self.delete_id:
-            response = self.tester.delete(f'/pmp/virtualproduct/{item_id}')
+        #for item_id in self.delete_id:
+           # response = self.tester.delete(f'/pmp/virtualproduct/{item_id}')
 
     def test_create_virtual_products_fail(self):
         virtual_product = self.virtual_model_builder.build_full()
