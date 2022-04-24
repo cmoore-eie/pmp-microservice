@@ -1,3 +1,5 @@
+import json
+import time
 import unittest
 
 import requests
@@ -5,46 +7,9 @@ import requests
 from models.lookup_model import Lookup
 from services import service
 from services.http_status import HttpStatus
+from services.pmp_lookup import PMPLookupCodes
 from services.pmptypes import PMPTypes
 
-lookup_items = ['agreement-cancel-reasons',
-                'agreement-status',
-                'agreement-types',
-                'apa-action-types',
-                'apa--macro-inputs',
-                'apa-macro-types',
-                'attribute-value-types',
-                'billing-producer-roles',
-                'channels',
-                'components',
-                'condition-logic-opers',
-                'condition-logic-types',
-                'copy-clone-actions',
-                'export-formats',
-                'file-import-types',
-                'item-status',
-                'lead-follow',
-                'negotiation-status',
-                'schedule-contents',
-                'schedule-functions',
-                'schedule-identity-types',
-                'scheme-Action-types',
-                'scheme-Attachments',
-                'scheme-calc-value-types',
-                'scheme-card-filters',
-                'scheme-condition-types',
-                'scheme-cost-types',
-                'scheme-create-methods',
-                'scheme-Operator-types',
-                'scheme-Source-types',
-                'scheme-timeframes',
-                'scheme-types',
-                'scheme-validation-types',
-                'scheme-value-types',
-                'suspension-reasons',
-                'system-setting-types',
-                'virtual-flavour-actions',
-                'virtual-product-types']
 
 
 class LookupTest(unittest.TestCase):
@@ -57,24 +22,45 @@ class LookupTest(unittest.TestCase):
         pass
 
     def test_by_codes(self):
-        for item_type in lookup_items:
-            url = f'{self.url}/pmp/{item_type}'
+        for item_type in PMPLookupCodes:
+            start_time = time.time()
+            url = f'{self.url}/pmp/{item_type.value}'
             response = requests.request("GET", url, headers={}, data='')
             statuscode = response.status_code
             self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
             self.assertIsNotNone(response.json())
+            # for item in response.json:
+            #     self.item_response(f'{item_type.value}', item.get('key'))
+            item_codes = list()
             for item in response.json():
-                self.item_response(f'/pmp/{item_type}', item.get("id"))
+                item_codes.append({'code': item.get('value')})
+            self.item_response_by_codes(f'{item_type.value}', json.dumps(item_codes))
+            end_time = time.time()
+            print(f'Processed - {item_type.value} - {end_time - start_time}')
 
     def item_response(self, item_url, item_id):
-        url = f'{self.url}{item_url}/{item_id}'
+        url = f'/pmp/{item_url}/{item_id}'
+        test_response = self.tester.get(url)
+        self.assertIsNotNone(test_response.json['_id'], f'while processing {url}')
+        self.assertIsNotNone(test_response.json['code'], f'while processing {url}')
+        self.assertIsNotNone(test_response.json['name'], f'while processing {url}')
+        model = Lookup().from_json(test_response.json)
+        self.assertEqual(model.id, test_response.json['_id'], f'while processing {url}')
+        self.assertEqual(model.code, test_response.json['code'], f'while processing {url}')
+        self.assertEqual(model.name, test_response.json['name'], f'while processing {url}')
+
+    def item_response_by_codes(self, item_url, item_codes):
+        url = f'{self.url}/pmp/{item_url}/codes/{item_codes}'
         test_response = requests.request("GET", url, headers={}, data='')
-        test_response_json = test_response.json()
-        model = Lookup().from_json(test_response_json)
-        self.assertTrue(model.type, PMPTypes.lookup_apa_action_type.value)
-        self.assertEqual(model.id, test_response_json['_id'], f'while processing {url}')
-        self.assertEqual(model.code, test_response_json['code'], f'while processing {url}')
-        self.assertEqual(model.name, test_response_json['name'], f'while processing {url}')
+        self.assertEqual(len(json.loads(item_codes)), len(test_response.json()), f'while processing {url}')
+        for item in test_response.json():
+            self.assertIsNotNone(item.get('_id'), f'while processing {url}')
+            self.assertIsNotNone(item.get('code'), f'while processing {url}')
+            self.assertIsNotNone(item.get('name'), f'while processing {url}')
+            model = Lookup().from_json(item)
+            self.assertEqual(model.id, item.get('_id'), f'while processing {url}')
+            self.assertEqual(model.code, item.get('code'), f'while processing {url}')
+            self.assertEqual(model.name, item.get('name'), f'while processing {url}')
 
 
 if __name__ == '__main__':

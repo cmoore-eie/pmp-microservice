@@ -1,6 +1,10 @@
+import json
+import math
+
 from cloudant.document import Document
 from flask import Blueprint, jsonify, request
 from database import couchdb
+from services import pmp_lookup
 from services.pmp_lookup import PMPLookupCodes
 
 lookup_blueprint = Blueprint('lookup_blueprint', __name__)
@@ -22,7 +26,7 @@ def get_agreement_cancel_reasons(lookup_id):
 
 @lookup_blueprint.route('/pmp/agreement-cancel-reasons/codes/<lookup_id>', methods=['GET'])
 def get_agreement_cancel_reasons_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'AgreementCancelReason_PMP')
     return document
 
 
@@ -42,7 +46,7 @@ def get_agreement_status(lookup_id):
 
 @lookup_blueprint.route('/pmp/agreement-status/codes/<lookup_id>', methods=['GET'])
 def get_agreement_status_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id,'AgreementStatus_PMP')
     return document
 
 
@@ -62,7 +66,7 @@ def get_agreement_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/agreement-types/codes/<lookup_id>', methods=['GET'])
 def get_agreement_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id,"AgreementType_PMP")
     return document
 
 
@@ -82,7 +86,7 @@ def get_apa_action_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/apa-action-types/codes/<lookup_id>', methods=['GET'])
 def get_apa_action_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, "APAActionType_PMP")
     return document
 
 
@@ -102,7 +106,7 @@ def get_apa_macro_inputs(lookup_id):
 
 @lookup_blueprint.route('/pmp/apa-macro-inputs/codes/<lookup_id>', methods=['GET'])
 def get_apa_macro_inputs_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, "APAMacroInput_PMP")
     return document
 
 
@@ -122,7 +126,7 @@ def get_apa_macro_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/apa-macro-types/codes/<lookup_id>', methods=['GET'])
 def get_apa_macro_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, "APAMacroType_PMP")
     return document
 
 
@@ -142,7 +146,7 @@ def get_attribute_value_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/attribute-value-types/codes/<lookup_id>', methods=['GET'])
 def get_attribute_value_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, "AttributeValueType_PMP")
     return document
 
 
@@ -162,7 +166,7 @@ def get_billing_producer_roles(lookup_id):
 
 @lookup_blueprint.route('/pmp/billing-producer-roles/codes/<lookup_id>', methods=['GET'])
 def get_billing_producer_roles_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'BillingProducerRole_PMP')
     return document
 
 
@@ -182,7 +186,7 @@ def get_channels(lookup_id):
 
 @lookup_blueprint.route('/pmp/channels/codes/<lookup_id>', methods=['GET'])
 def get_channels_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'Channel_PMP')
     return document
 
 
@@ -202,7 +206,7 @@ def get_components(lookup_id):
 
 @lookup_blueprint.route('/pmp/components/codes/<lookup_id>', methods=['GET'])
 def get_components_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'Component_PMP')
     return document
 
 
@@ -222,7 +226,7 @@ def get_condition_logic_opers(lookup_id):
 
 @lookup_blueprint.route('/pmp/condition-logic-opers/codes/<lookup_id>', methods=['GET'])
 def get_condition_logic_opers_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'ConditionLogicOper_PMP')
     return document
 
 
@@ -242,7 +246,7 @@ def get_condition_logic_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/condition-logic-types/codes/<lookup_id>', methods=['GET'])
 def get_condition_logic_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'ConditionLogicType_PMP')
     return document
 
 
@@ -262,7 +266,7 @@ def get_copy_clone_actions(lookup_id):
 
 @lookup_blueprint.route('/pmp/copy-clone-actions/codes/<lookup_id>', methods=['GET'])
 def get_copy_clone_actions_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'CopyCloneAction_PMP')
     return document
 
 
@@ -282,7 +286,7 @@ def get_export_formats(lookup_id):
 
 @lookup_blueprint.route('/pmp/export-formats/codes/<lookup_id>', methods=['GET'])
 def get_export_formats_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'ExportFormat_PMP')
     return document
 
 
@@ -302,7 +306,7 @@ def get_file_import_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/file-import-types/codes/<lookup_id>', methods=['GET'])
 def get_file_import_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'FileImportType_PMP')
     return document
 
 
@@ -322,7 +326,7 @@ def get_item_status(lookup_id):
 
 @lookup_blueprint.route('/pmp/item-status/codes/<lookup_id>', methods=['GET'])
 def get_item_status_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'ItemStatus_PMP')
     return document
 
 
@@ -342,7 +346,7 @@ def get_lead_follow(lookup_id):
 
 @lookup_blueprint.route('/pmp/lead-follow/codes/<lookup_id>', methods=['GET'])
 def get_lead_follow_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'LeadFollow_PMP')
     return document
 
 
@@ -362,7 +366,7 @@ def get_negotiation_status(lookup_id):
 
 @lookup_blueprint.route('/pmp/negotiation-status/codes/<lookup_id>', methods=['GET'])
 def get_negotiation_status_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'NegotiationStatus_PMP')
     return document
 
 
@@ -382,7 +386,7 @@ def get_schedule_contents(lookup_id):
 
 @lookup_blueprint.route('/pmp/schedule-contents/codes/<lookup_id>', methods=['GET'])
 def get_schedule_contents_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'ScheduleContent_PMP')
     return document
 
 
@@ -402,7 +406,7 @@ def get_schedule_functions(lookup_id):
 
 @lookup_blueprint.route('/pmp/schedule-functions/codes/<lookup_id>', methods=['GET'])
 def get_schedule_functions_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'ScheduleFunction_PMP')
     return document
 
 
@@ -422,7 +426,7 @@ def get_schedule_identity_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/schedule-identity-types/codes/<lookup_id>', methods=['GET'])
 def get_schedule_identity_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'ScheduleIdentityType_PMP')
     return document
 
 
@@ -442,7 +446,7 @@ def get_scheme_Action_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-action-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_Action_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeActionType_PMP')
     return document
 
 
@@ -462,7 +466,7 @@ def get_scheme_Attachments(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-attachments/codes/<lookup_id>', methods=['GET'])
 def get_scheme_Attachments_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeAttachment_PMP')
     return document
 
 
@@ -482,7 +486,7 @@ def get_scheme_calc_value_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-calc-value-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_calc_value_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeCalcValueType_PMP')
     return document
 
 
@@ -502,7 +506,7 @@ def get_scheme_card_filters(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-card-filters/codes/<lookup_id>', methods=['GET'])
 def get_scheme_card_filters_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeCardFilter_PMP')
     return document
 
 
@@ -522,7 +526,7 @@ def get_scheme_condition_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-condition-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_condition_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeConditionType_PMP')
     return document
 
 
@@ -542,7 +546,7 @@ def get_scheme_cost_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-cost-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_cost_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeCostType_PMP')
     return document
 
 
@@ -562,7 +566,7 @@ def get_scheme_create_methods(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-create-methods/codes/<lookup_id>', methods=['GET'])
 def get_scheme_create_methods_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeCreateMethod_PMP')
     return document
 
 
@@ -582,7 +586,7 @@ def get_scheme_operator_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-operator-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_operator_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeOperatorType_PMP')
     return document
 
 
@@ -602,7 +606,7 @@ def get_scheme_source_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-source-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_source_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeSourceType_PMP')
     return document
 
 
@@ -622,7 +626,7 @@ def get_scheme_timeframes(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-timeframes/codes/<lookup_id>', methods=['GET'])
 def get_scheme_timeframes_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeTimeframe_PMP')
     return document
 
 
@@ -642,7 +646,7 @@ def get_scheme_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeType_PMP')
     return document
 
 
@@ -662,7 +666,7 @@ def get_scheme_validation_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-validation-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_validation_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeValidationType_PMP')
     return document
 
 
@@ -682,7 +686,7 @@ def get_scheme_value_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/scheme-value-types/codes/<lookup_id>', methods=['GET'])
 def get_scheme_value_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SchemeValueType_PMP')
     return document
 
 
@@ -702,7 +706,7 @@ def get_suspension_reasons(lookup_id):
 
 @lookup_blueprint.route('/pmp/suspension-reasons/codes/<lookup_id>', methods=['GET'])
 def get_suspension_reasons_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SuspensionReason_PMP')
     return document
 
 
@@ -722,7 +726,7 @@ def get_system_setting_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/system-setting-types/codes/<lookup_id>', methods=['GET'])
 def get_system_setting_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'SystemSettingTypes_PMP')
     return document
 
 
@@ -742,7 +746,7 @@ def get_virtual_flavour_actions(lookup_id):
 
 @lookup_blueprint.route('/pmp/virtual-flavour-actions/codes/<lookup_id>', methods=['GET'])
 def get_virtual_flavour_actions_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'VirtualFlavourAction_PMP')
     return document
 
 
@@ -762,7 +766,7 @@ def get_virtual_product_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/virtual-product-types/codes/<lookup_id>', methods=['GET'])
 def get_virtual_product_types_by_code(lookup_id):
-    document = get_item_code(lookup_id)
+    document = get_item_codes(lookup_id, 'VirtualProductType_PMP')
     return document
 
 
@@ -779,21 +783,51 @@ def get_item(lookup_id):
     return document
 
 
-def get_item_code(lookup_id):
+def get_item_codes(lookup_id_list, type):
     """
-    Generic function to extract a single document from the database using the code, as the code is not
-    the identifier for the document a selector is used to extract the document, there should only be one
-    document with that code.
-    :param lookup_id:
-    :return: Couchdb document
+    Generic function to extract a single document or multiple documents from the database, the input is a json list of
+    code : value pairs, if there is only a single item in the list this is used directly to extract the item otherwise
+    a list of values is used. When there are a list of more than 25 items to be retrieved these are extracted 25 at
+    a time from the database due to a query limit.
+    :param lookup_id_list:
+    :return: Couchdb document(s)
     """
     connector = couchdb.db_client
-    selector = {
-        'code': lookup_id
-    }
-    docs = connector.lookup_database.get_query_result(selector)
-    for doc in docs:
-        return doc
+    lookup_list = json.loads(lookup_id_list)
+    if len(lookup_list) < 2:
+        selector = {
+            'code': lookup_list[0].get('code'),
+            'type': type
+        }
+        docs = connector.lookup_database.get_query_result(selector)
+        return jsonify(docs[:])
+    else:
+        value_list = list()
+        for item in lookup_list:
+            value_list.append(item.get('code'))
+        if len(value_list) < 26:
+            selector = {
+                'code': {
+                    '$in': value_list
+                },
+                'type': type
+            }
+            docs = connector.lookup_database.get_query_result(selector)
+            return jsonify(docs[:])
+        else:
+            return_docs = list()
+            chunk_loop = int(math.ceil(len(value_list) / 25))
+            for i in range(chunk_loop):
+                selector = {
+                    'code': {
+                        '$in': chunk_list(value_list, i)
+                    },
+                    'type': type
+                }
+                docs = connector.lookup_database.get_query_result(selector)
+                for doc in docs[:]:
+                    return_docs.append(doc)
+            return jsonify(return_docs)
 
 
 def get_item_list(view_name):
@@ -807,3 +841,16 @@ def get_item_list(view_name):
     design = connector.lookup_database.get_design_document('_design/lookup')
     view = design.get_view(view_name)
     return jsonify(view.result[:])
+
+
+def chunk_list(value_list, chunk):
+    chunk_size = 25
+    if chunk > 0:
+        chunk_start = chunk_size * chunk
+        chunk_end = chunk_start + chunk_size
+    else:
+        chunk_start = chunk
+        chunk_end = chunk_size
+    if chunk_end > len(value_list):
+        return value_list[chunk_start:]
+    return value_list[chunk_start: chunk_end]

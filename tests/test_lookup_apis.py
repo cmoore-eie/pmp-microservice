@@ -1,3 +1,4 @@
+import json
 import time
 import unittest
 
@@ -23,10 +24,12 @@ class LookupTest(unittest.TestCase):
             statuscode = response.status_code
             self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
             self.assertIsNotNone(response.json)
+            # for item in response.json:
+            #     self.item_response(f'{item_type.value}', item.get('key'))
+            item_codes = list()
             for item in response.json:
-                self.item_response(f'{item_type.value}', item.get('key'))
-            for item in response.json:
-                self.item_response_by_code(f'{item_type.value}', item.get('value'))
+                item_codes.append({'code': item.get('value')})
+            self.item_response_by_codes(f'{item_type.value}', json.dumps(item_codes))
             end_time = time.time()
             print(f'Processed - {item_type.value} - {end_time - start_time}')
 
@@ -41,16 +44,18 @@ class LookupTest(unittest.TestCase):
         self.assertEqual(model.code, test_response.json['code'], f'while processing {url}')
         self.assertEqual(model.name, test_response.json['name'], f'while processing {url}')
 
-    def item_response_by_code(self, item_url, item_id):
-        url = f'/pmp/{item_url}/codes/{item_id}'
+    def item_response_by_codes(self, item_url, item_codes):
+        url = f'/pmp/{item_url}/codes/{item_codes}'
         test_response = self.tester.get(url)
-        self.assertIsNotNone(test_response.json['_id'], f'while processing {url}')
-        self.assertIsNotNone(test_response.json['code'], f'while processing {url}')
-        self.assertIsNotNone(test_response.json['name'], f'while processing {url}')
-        model = Lookup().from_json(test_response.json)
-        self.assertEqual(model.id, test_response.json['_id'], f'while processing {url}')
-        self.assertEqual(model.code, test_response.json['code'], f'while processing {url}')
-        self.assertEqual(model.name, test_response.json['name'], f'while processing {url}')
+        self.assertEqual(len(json.loads(item_codes)), len(test_response.json), f'while processing {url}')
+        for item in test_response.json:
+            self.assertIsNotNone(item.get('_id'), f'while processing {url}')
+            self.assertIsNotNone(item.get('code'), f'while processing {url}')
+            self.assertIsNotNone(item.get('name'), f'while processing {url}')
+            model = Lookup().from_json(item)
+            self.assertEqual(model.id, item.get('_id'), f'while processing {url}')
+            self.assertEqual(model.code, item.get('code'), f'while processing {url}')
+            self.assertEqual(model.name, item.get('name'), f'while processing {url}')
 
 
 if __name__ == '__main__':
