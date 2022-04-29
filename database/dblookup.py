@@ -80,16 +80,16 @@ class DBLookup:
                     "map": "function(doc) {\n  if(doc.type == \"SchemeAttachment_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "scheme-calc-value-types": {
-                    "map": "function(doc) {\n  if(doc.type == \"SchemeSourceType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                    "map": "function(doc) {\n  if(doc.type == \"SchemeCalcValueType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "scheme-card-filters": {
                     "map": "function(doc) {\n  if(doc.type == \"SchemeCardFilter_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "scheme-condition-types": {
-                    "map": "function(doc) {\n  if(doc.type == \"SchemeCostType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                    "map": "function(doc) {\n  if(doc.type == \"SchemeConditionType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "scheme-cost-types": {
-                    "map": "function(doc) {\n  if(doc.type == \"SchemeConditionType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                    "map": "function(doc) {\n  if(doc.type == \"SchemeCostType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "scheme-create-methods": {
                     "map": "function(doc) {\n  if(doc.type == \"SchemeCreateMethod_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
@@ -107,10 +107,10 @@ class DBLookup:
                     "map": "function(doc) {\n  if(doc.type == \"SchemeType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "scheme-validation-types": {
-                    "map": "function(doc) {\n  if(doc.type == \"SchemeValueType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                    "map": "function(doc) {\n  if(doc.type == \"SchemeValidationType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "scheme-value-types": {
-                    "map": "function(doc) {\n  if(doc.type == \"SchemeValidationType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                    "map": "function(doc) {\n  if(doc.type == \"SchemeValueType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 },
                 "suspension-reasons": {
                     "map": "function(doc) {\n  if(doc.type == \"SuspensionReason_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
@@ -123,6 +123,25 @@ class DBLookup:
                 },
                 "virtual-product-types": {
                     "map": "function(doc) {\n  if(doc.type == \"VirtualProductType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                },
+                "lookup-types": {
+                    "map": "function (doc) {\n  emit(doc.type, 1);\n}",
+                    "reduce": "_sum"
+                },
+                "general-term-attachments": {
+                    "map": "function(doc) {\n  if(doc.type == \"GeneralTermAttachment_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                },
+                "generic-clause-types": {
+                    "map": "function(doc) {\n  if(doc.type == \"GenericClauseType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                },
+                "generic-list-types": {
+                    "map": "function(doc) {\n  if(doc.type == \"GenericListType_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                },
+                "generic-multiplicity": {
+                    "map": "function(doc) {\n  if(doc.type == \"GenericMultiplicity_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
+                },
+                "generic-subprod-styles": {
+                    "map": "function(doc) {\n  if(doc.type == \"GenericSubprodStyle_PMP\"){\n    emit(doc._id, doc.code)\n  }\n}"
                 }
             }
         }

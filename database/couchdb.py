@@ -4,7 +4,6 @@ from cloudant import CouchDB
 from cloudant.error import CloudantDatabaseException
 from dotenv import dotenv_values
 from requests.adapters import HTTPAdapter
-
 from database.dblookup import DBLookup
 from services.pmp_databases import PMPDatabases
 

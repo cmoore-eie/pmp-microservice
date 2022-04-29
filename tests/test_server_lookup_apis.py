@@ -11,7 +11,6 @@ from services.pmp_lookup import PMPLookupCodes
 from services.pmptypes import PMPTypes
 
 
-
 class LookupTest(unittest.TestCase):
 
     def setUp(self):
@@ -33,8 +32,8 @@ class LookupTest(unittest.TestCase):
             #     self.item_response(f'{item_type.value}', item.get('key'))
             item_codes = list()
             for item in response.json():
-                item_codes.append({'code': item.get('value')})
-            self.item_response_by_codes(f'{item_type.value}', json.dumps(item_codes))
+                item_codes.append(item.get('code'))
+            self.item_response_by_codes(f'{item_type.value}', ','.join(item_codes))
             end_time = time.time()
             print(f'Processed - {item_type.value} - {end_time - start_time}')
 
@@ -52,7 +51,7 @@ class LookupTest(unittest.TestCase):
     def item_response_by_codes(self, item_url, item_codes):
         url = f'{self.url}/pmp/{item_url}/codes/{item_codes}'
         test_response = requests.request("GET", url, headers={}, data='')
-        self.assertEqual(len(json.loads(item_codes)), len(test_response.json()), f'while processing {url}')
+        self.assertEqual(len(item_codes.split(',')), len(test_response.json()), f'while processing {url}')
         for item in test_response.json():
             self.assertIsNotNone(item.get('_id'), f'while processing {url}')
             self.assertIsNotNone(item.get('code'), f'while processing {url}')

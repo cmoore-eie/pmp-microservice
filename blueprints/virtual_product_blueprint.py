@@ -2,6 +2,7 @@ import json
 
 from cloudant.document import Document
 from flask import Blueprint, jsonify, request
+from flask_restful import abort
 
 from database import couchdb
 from services.http_status import HttpStatus

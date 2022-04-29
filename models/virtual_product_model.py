@@ -1,10 +1,6 @@
 import datetime
-import json
-
 import jsonpickle as jsonpickle
-
 from models.delegate_model import ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated
-from services.encoders import DateTimeEncoder
 from services.pmptypes import PMPTypes
 
 
@@ -18,10 +14,10 @@ class VirtualProduct(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleE
         self.effective_date = datetime.datetime.now()
         self.base_type = PMPTypes.virtual_product.value
         self.virtual_product_type = None
-        self.virtual_product_categories = []
-        self.virtual_product_contracts = []
-        self.virtual_product_flavours = []
-        self.virtual_product_lines = []
+        self.virtual_product_categories: list[VirtualProductCategory] = list()
+        self.virtual_product_contracts: list[VirtualProductContract] = list()
+        self.virtual_product_flavours: list[VirtualProductFlavour] = list()
+        self.virtual_product_lines: list[VirtualProductLine] = list()
 
     def to_json(self):
         return jsonpickle.encode(self, unpicklable=False)
@@ -62,6 +58,7 @@ class VirtualProductContract(ItemLinkDelegate):
 class VirtualProductFlavour(ItemLinkDelegate, SimpleEffDated):
     def __init__(self):
         super(VirtualProductFlavour, self).__init__()
+        self.default = None
         self.base_type = PMPTypes.virtual_product_flavour.value
 
 

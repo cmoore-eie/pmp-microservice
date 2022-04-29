@@ -1,13 +1,82 @@
-import json
 import math
+import uuid
 
 from cloudant.document import Document
 from flask import Blueprint, jsonify, request
 from database import couchdb
-from services import pmp_lookup
 from services.pmp_lookup import PMPLookupCodes
 
 lookup_blueprint = Blueprint('lookup_blueprint', __name__)
+
+
+#
+# General
+#
+@lookup_blueprint.route('/pmp/lookup-types', methods=['GET'])
+def list_lookup_types():
+    connector = couchdb.db_client
+    design = connector.lookup_database.get_design_document('_design/lookup')
+    view = design.get_view('lookup-types')
+    with view.custom_result(group=True) as rslt:
+        return jsonify(rslt[:])
+
+
+@lookup_blueprint.route('/pmp/lookup-items/type/<lookup_type>', methods=['GET'])
+def list_lookup_items(lookup_type):
+    if isinstance(lookup_type, str):
+        connector = couchdb.db_client
+        selector = {
+            'type': lookup_type
+        }
+        docs = connector.lookup_database.get_query_result(selector)
+        return jsonify(docs[:])
+
+
+@lookup_blueprint.route('/pmp/lookup-items/id/<lookup_id>', methods=['GET'])
+def get_lookup_items(lookup_id):
+    if isinstance(lookup_id, str):
+        db = couchdb.db_client.lookup_database
+        with Document(db, lookup_id) as document:
+            try:
+                document.fetch()
+                return document
+            except:
+                resp = jsonify(f'Document does not exist : {lookup_id}')
+                resp.status_code = 400
+                return resp
+
+
+@lookup_blueprint.route('/pmp/lookup-items', methods=['POST'])
+def update_lookup_items():
+    if request.content_type == 'application/json':
+        json = request.json
+        db = couchdb.db_client.lookup_database
+        if '_id' not in json:
+            json['_id'] = str(uuid.uuid4())
+        db.create_document(json)
+        resp = jsonify(json)
+        resp.status_code = 200
+        return resp
+    else:
+        resp = jsonify('Unsupported Content Type')
+        resp.status_code = 400
+        return resp
+
+
+@lookup_blueprint.route('/pmp/lookup-items/id/<lookup_id>', methods=['DELETE'])
+def remove_lookup_items(lookup_id):
+    connector = couchdb.db_client
+    db = couchdb.db_client.lookup_database
+    if lookup_id in db:
+        with Document(db, lookup_id) as document:
+            document['_deleted'] = True
+            resp = jsonify(f'Document deleted : {lookup_id}')
+            resp.status_code = 200
+            return resp
+    else:
+        resp = jsonify('Invalid Document')
+        resp.status_code = 400
+        return resp
 
 
 #
@@ -46,7 +115,7 @@ def get_agreement_status(lookup_id):
 
 @lookup_blueprint.route('/pmp/agreement-status/codes/<lookup_id>', methods=['GET'])
 def get_agreement_status_by_code(lookup_id):
-    document = get_item_codes(lookup_id,'AgreementStatus_PMP')
+    document = get_item_codes(lookup_id, 'AgreementStatus_PMP')
     return document
 
 
@@ -66,7 +135,7 @@ def get_agreement_types(lookup_id):
 
 @lookup_blueprint.route('/pmp/agreement-types/codes/<lookup_id>', methods=['GET'])
 def get_agreement_types_by_code(lookup_id):
-    document = get_item_codes(lookup_id,"AgreementType_PMP")
+    document = get_item_codes(lookup_id, "AgreementType_PMP")
     return document
 
 
@@ -307,6 +376,106 @@ def get_file_import_types(lookup_id):
 @lookup_blueprint.route('/pmp/file-import-types/codes/<lookup_id>', methods=['GET'])
 def get_file_import_types_by_code(lookup_id):
     document = get_item_codes(lookup_id, 'FileImportType_PMP')
+    return document
+
+
+#
+# General Agreement Attachment
+#
+@lookup_blueprint.route('/pmp/general-term-attachments', methods=['GET'])
+def list_general_term_attachments():
+    return get_item_list(PMPLookupCodes.general_term_attachments.value)
+
+
+@lookup_blueprint.route('/pmp/general-term-attachments/<lookup_id>', methods=['GET'])
+def get_general_term_attachments(lookup_id):
+    document = get_item(lookup_id)
+    return document
+
+
+@lookup_blueprint.route('/pmp/general-term-attachments/codes/<lookup_id>', methods=['GET'])
+def get_general_term_attachments_by_code(lookup_id):
+    document = get_item_codes(lookup_id, 'GeneralTermAttachment_PMP')
+    return document
+
+
+#
+# Generic Clause Type
+#
+@lookup_blueprint.route('/pmp/generic-clause-types', methods=['GET'])
+def list_generic_clause_type():
+    return get_item_list(PMPLookupCodes.generic_clause_types.value)
+
+
+@lookup_blueprint.route('/pmp/generic-clause-types/<lookup_id>', methods=['GET'])
+def get_generic_clause_types(lookup_id):
+    document = get_item(lookup_id)
+    return document
+
+
+@lookup_blueprint.route('/pmp/generic-clause-types/codes/<lookup_id>', methods=['GET'])
+def get_generic_clause_types_by_code(lookup_id):
+    document = get_item_codes(lookup_id, 'GenericClauseType_PMP')
+    return document
+
+
+#
+# Generic List Type
+#
+@lookup_blueprint.route('/pmp/generic-list-types', methods=['GET'])
+def list_generic_list_types():
+    return get_item_list(PMPLookupCodes.generic_list_types.value)
+
+
+@lookup_blueprint.route('/pmp/generic-list-types/<lookup_id>', methods=['GET'])
+def get_generic_list_types(lookup_id):
+    document = get_item(lookup_id)
+    return document
+
+
+@lookup_blueprint.route('/pmp/generic-list-types/codes/<lookup_id>', methods=['GET'])
+def get_generic_list_types_by_code(lookup_id):
+    document = get_item_codes(lookup_id, 'GenericListType_PMP')
+    return document
+
+
+#
+# Generic Multiplicity
+#
+@lookup_blueprint.route('/pmp/generic-multiplicity', methods=['GET'])
+def list_generic_multiplicity():
+    return get_item_list(PMPLookupCodes.generic_multiplicity.value)
+
+
+@lookup_blueprint.route('/pmp/generic-multiplicity/<lookup_id>', methods=['GET'])
+def get_generic_multiplicity(lookup_id):
+    document = get_item(lookup_id)
+    return document
+
+
+@lookup_blueprint.route('/pmp/generic-multiplicity/codes/<lookup_id>', methods=['GET'])
+def get_generic_clause_multiplicity_by_code(lookup_id):
+    document = get_item_codes(lookup_id, 'GenericMultiplicity_PMP')
+    return document
+
+
+#
+# Generic Subprod Style
+#
+@lookup_blueprint.route('/pmp/generic-subprod-styles', methods=['GET'])
+def list_generic_subprod_styles():
+    return get_item_list(PMPLookupCodes.generic_subprod_styles.value)
+
+
+@lookup_blueprint.route('/pmp/generic-subprod-styles/<lookup_id>', methods=['GET'])
+def get_generic_subprod_styles(lookup_id):
+    document = get_item(lookup_id)
+    return document
+
+
+@lookup_blueprint.route('/pmp/generic-subprod-styles/codes/<lookup_id>', methods=['GET'])
+def get_generic_subprod_styles_by_code(lookup_id):
+    document = get_item_codes(lookup_id, 'GenericSubprodStyle_PMP')
     return document
 
 
@@ -793,10 +962,10 @@ def get_item_codes(lookup_id_list, type):
     :return: Couchdb document(s)
     """
     connector = couchdb.db_client
-    lookup_list = json.loads(lookup_id_list)
+    lookup_list = lookup_id_list.split(',')
     if len(lookup_list) < 2:
         selector = {
-            'code': lookup_list[0].get('code'),
+            'code': lookup_list[0],
             'type': type
         }
         docs = connector.lookup_database.get_query_result(selector)
@@ -804,7 +973,7 @@ def get_item_codes(lookup_id_list, type):
     else:
         value_list = list()
         for item in lookup_list:
-            value_list.append(item.get('code'))
+            value_list.append(item)
         if len(value_list) < 26:
             selector = {
                 'code': {
@@ -840,7 +1009,11 @@ def get_item_list(view_name):
     connector = couchdb.db_client
     design = connector.lookup_database.get_design_document('_design/lookup')
     view = design.get_view(view_name)
-    return jsonify(view.result[:])
+    result_items = jsonify(view.result[:])
+    return_docs = list()
+    for item in result_items.json:
+        return_docs.append(get_item(item.get('key')))
+    return jsonify(return_docs)
 
 
 def chunk_list(value_list, chunk):
