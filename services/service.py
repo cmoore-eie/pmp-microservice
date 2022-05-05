@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, g
 
+from blueprints.condition_logic_blueprint import condition_logic_blueprint
 from blueprints.lookup_blueprint import lookup_blueprint
 from blueprints.scheme_blueprint import scheme_blueprint
 from blueprints.virtual_product_blueprint import virtual_product_blueprint
@@ -8,6 +9,7 @@ app = Flask(__name__)
 app.register_blueprint(virtual_product_blueprint)
 app.register_blueprint(scheme_blueprint)
 app.register_blueprint(lookup_blueprint)
+app.register_blueprint(condition_logic_blueprint)
 
 @app.route("/")
 def auth():

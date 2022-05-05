@@ -16,12 +16,24 @@ class LookupTest(unittest.TestCase):
         self.tester = service.app.test_client(self)
 
     def tearDown(self) -> None:
+        """ TearDown - This will get rid of all the information that is marked as type Test"""
+        url = f'/pmp/lookup-items/type/Test'
+        response = self.tester.get(url)
+        for item in response.json:
+            url = f'/pmp/lookup-items/id/{item.get("_id")}'
+            response = self.tester.delete(url)
         pass
 
     def test_by_codes(self):
-        for item_type in PMPLookupCodes:
+        url = f'/pmp/lookup-types'
+        response = self.tester.get(url)
+        statuscode = response.status_code
+        self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
+        self.assertIsNotNone(response.json)
+        pmp_lookup_types = response.json
+        for item_type in pmp_lookup_types:
             start_time = time.time()
-            url = f'/pmp/{item_type.value}'
+            url = f'/pmp/lookup-items/type/{item_type["key"]}'
             response = self.tester.get(url)
             statuscode = response.status_code
             self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
@@ -31,9 +43,9 @@ class LookupTest(unittest.TestCase):
             item_codes = list()
             for item in response.json:
                 item_codes.append(item.get('code'))
-            self.item_response_by_codes(f'{item_type.value}', ','.join(item_codes))
+            self.item_response_by_codes(f'{item_type["key"]}', ','.join(item_codes))
             end_time = time.time()
-            print(f'Processed - {item_type.value} - {end_time - start_time}')
+            print(f'Processed - {item_type["key"]} - {end_time - start_time}')
 
     def test_lookup_items(self):
         url = f'/pmp/lookup-types'
@@ -47,7 +59,9 @@ class LookupTest(unittest.TestCase):
         self.assertEqual(len(PMPLookupCodes) + 1, len(data), f'while processing {url}')
         '''
     def test_add_item(self):
+        item_uuid = str(uuid.uuid4())
         data = {
+            '_id': item_uuid,
             'code': 'Test Code',
             'name': 'Test Name',
             'type': 'Test'}
@@ -56,6 +70,42 @@ class LookupTest(unittest.TestCase):
         response = self.tester.post(url, headers={'Content-Type': 'application/json'}, data=data_string)
         statuscode = response.status_code
         self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
+
+    def test_update_item(self):
+        item_uuid = str(uuid.uuid4())
+        #
+        # Create the document
+        #
+        data = {
+            '_id': item_uuid,
+            'code': 'Test Code',
+            'name': 'Test Name',
+            'type': 'Test'}
+        data_string = jsonpickle.encode(data)
+        url = f'/pmp/lookup-items'
+        response = self.tester.post(url, headers={'Content-Type': 'application/json'}, data=data_string)
+        item = response.json
+        #
+        # Fetch the document
+        #
+        url = f'/pmp/lookup-items/id/{item_uuid}'
+        response = self.tester.get(url)
+        item = response.json
+        #
+        # Update and Save
+        #
+        item['name'] = 'new name'
+        data_string = jsonpickle.encode(item)
+        statuscode = response.status_code
+        url = f'/pmp/lookup-items'
+        response = self.tester.put(url, headers={'Content-Type': 'application/json'}, data=data_string)
+        #
+        # Fetch and Check
+        #
+        url = f'/pmp/lookup-items/id/{item_uuid}'
+        response = self.tester.get(url)
+        item = response.json
+        self.assertEqual(item['name'], 'new name', f'while processing {url}')
 
     def test_lookup_items_by_type(self):
         url = f'/pmp/lookup-types'
@@ -112,7 +162,7 @@ class LookupTest(unittest.TestCase):
         self.assertEqual(model.name, test_response.json['name'], f'while processing {url}')
 
     def item_response_by_codes(self, item_url, item_codes):
-        url = f'/pmp/{item_url}/codes/{item_codes}'
+        url = f'/pmp/lookup-items/type/{item_url}/codes/{item_codes}'
         test_response = self.tester.get(url)
         self.assertEqual(len(item_codes.split(',')), len(test_response.json), f'while processing {url}')
         for item in test_response.json:

@@ -18,6 +18,7 @@ class CouchDBConnector:
         self.virtual_product_database = None
         self.scheme_database = None
         self.test_database = None
+        self.condition_logic_database = None
         config = dotenv_values(os.environ.get('PMP_MICROSERVICE_CONFIG'))
         self.db_user = config.get('COUCHDB_USER')
         self.db_password = config.get('COUCHDB_PASSWORD')
@@ -44,6 +45,11 @@ class CouchDBConnector:
             self.scheme_database = self.client.create_database(PMPDatabases.scheme.value)
         except CloudantDatabaseException:
             self.scheme_database = self.client[PMPDatabases.scheme.value]
+
+        try:
+            self.condition_logic_database = self.client.create_database(PMPDatabases.condition_logic.value)
+        except CloudantDatabaseException:
+            self.condition_logic_database = self.client[PMPDatabases.condition_logic.value]
 
         try:
             self.test_database = self.client.create_database("pmp-test")
