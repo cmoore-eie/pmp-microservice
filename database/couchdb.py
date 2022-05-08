@@ -14,11 +14,7 @@ class CouchDBConnector:
     def __init__(self):
         self.client = None
         self.session = None
-        self.lookup_database = None
-        self.virtual_product_database = None
-        self.scheme_database = None
-        self.test_database = None
-        self.condition_logic_database = None
+        self.databases = {}
         config = dotenv_values(os.environ.get('PMP_MICROSERVICE_CONFIG'))
         self.db_user = config.get('COUCHDB_USER')
         self.db_password = config.get('COUCHDB_PASSWORD')
@@ -30,32 +26,16 @@ class CouchDBConnector:
                               adapter=httpAdapter)
         self.session = self.client.session()
 
-        try:
-            self.lookup_database = self.client.create_database(PMPDatabases.lookup.value)
-            DBLookup(self.lookup_database).create_view()
-        except CloudantDatabaseException:
-            self.lookup_database = self.client[PMPDatabases.lookup.value]
+        for db in PMPDatabases:
+            try:
+                self.databases[db] = self.client.create_database(db.value)
+                self.create_views(db)
+            except CloudantDatabaseException:
+                self.databases[db] = self.client[db.value]
 
-        try:
-            self.virtual_product_database = self.client.create_database(PMPDatabases.virtual_product.value)
-        except CloudantDatabaseException:
-            self.virtual_product_database = self.client[PMPDatabases.virtual_product.value]
-
-        try:
-            self.scheme_database = self.client.create_database(PMPDatabases.scheme.value)
-        except CloudantDatabaseException:
-            self.scheme_database = self.client[PMPDatabases.scheme.value]
-
-        try:
-            self.condition_logic_database = self.client.create_database(PMPDatabases.condition_logic.value)
-        except CloudantDatabaseException:
-            self.condition_logic_database = self.client[PMPDatabases.condition_logic.value]
-
-        try:
-            self.test_database = self.client.create_database("pmp-test")
-            DBLookup(self.test_database).create_view()
-        except CloudantDatabaseException:
-            self.test_database = self.client["pmp-test"]
+    def create_views(self, db):
+        if db is PMPDatabases.lookup:
+            DBLookup(self.databases[db]).create_view()
 
 
 db_client = CouchDBConnector()

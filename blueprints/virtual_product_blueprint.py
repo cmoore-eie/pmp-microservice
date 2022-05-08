@@ -6,6 +6,7 @@ from flask_restful import abort
 
 from database import couchdb
 from services.http_status import HttpStatus
+from services.pmp_databases import PMPDatabases
 
 virtual_product_blueprint = Blueprint('virtualproduct_blueprint', __name__)
 
@@ -20,8 +21,7 @@ def get_virtual_product(virtual_product_id):
 def create_virtual_product():
     if request.data is not None and request.is_json:
         data = json.loads(request.data)
-        connector = couchdb.db_client
-        db = connector.virtual_product_database
+        db = couchdb.db_client.databases[PMPDatabases.virtual_product]
         db.create_document(data)
         return '', HttpStatus.created_201.value
     return '',HttpStatus.bad_request_400.value
@@ -29,8 +29,7 @@ def create_virtual_product():
 
 @virtual_product_blueprint.route('/pmp/virtualproduct/<virtual_product_id>', methods=['DELETE'])
 def delete_virtual_product(virtual_product_id):
-    connector = couchdb.db_client
-    db = connector.virtual_product_database
+    db = couchdb.db_client.databases[PMPDatabases.virtual_product]
     document = get_document(virtual_product_id)
     document.fetch()
     document.delete()
@@ -43,7 +42,7 @@ def find_virtual_products():
 
 
 def get_document(lookup_id):
-    connector = couchdb.db_client
-    document = Document(connector.virtual_product_database, lookup_id)
+    db = couchdb.db_client.databases[PMPDatabases.virtual_product]
+    document = Document(db, lookup_id)
     document.fetch()
     return document

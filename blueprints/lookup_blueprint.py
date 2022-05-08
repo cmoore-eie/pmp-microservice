@@ -4,6 +4,7 @@ import uuid
 from cloudant.document import Document
 from flask import Blueprint, jsonify, request
 from database import couchdb
+from services.pmp_databases import PMPDatabases
 
 lookup_blueprint = Blueprint('lookup_blueprint', __name__)
 
@@ -13,8 +14,8 @@ lookup_blueprint = Blueprint('lookup_blueprint', __name__)
 #
 @lookup_blueprint.route('/pmp/lookup-types', methods=['GET'])
 def list_lookup_types():
-    connector = couchdb.db_client
-    design = connector.lookup_database.get_design_document('_design/lookup')
+    db = couchdb.db_client.databases[PMPDatabases.lookup]
+    design = db.get_design_document('_design/lookup')
     view = design.get_view('lookup-types')
     with view.custom_result(group=True) as rslt:
         return jsonify(rslt[:])
@@ -22,12 +23,13 @@ def list_lookup_types():
 
 @lookup_blueprint.route('/pmp/lookup-items/type/<lookup_type>', methods=['GET'])
 def list_lookup_items(lookup_type):
+    db = couchdb.db_client.databases[PMPDatabases.lookup]
     if isinstance(lookup_type, str):
         connector = couchdb.db_client
         selector = {
             'type': lookup_type
         }
-        docs = connector.lookup_database.get_query_result(selector)
+        docs = db.get_query_result(selector)
         return jsonify(docs[:])
 
 
@@ -46,7 +48,7 @@ def list_lookup_items_by_view(view_name):
 @lookup_blueprint.route('/pmp/lookup-items/id/<lookup_id>', methods=['GET'])
 def get_lookup_items(lookup_id):
     if isinstance(lookup_id, str):
-        db = couchdb.db_client.lookup_database
+        db = couchdb.db_client.databases[PMPDatabases.lookup]
         with Document(db, lookup_id) as document:
             try:
                 document.fetch()
@@ -61,7 +63,7 @@ def get_lookup_items(lookup_id):
 def create_lookup_items():
     if request.content_type == 'application/json':
         json = request.json
-        db = couchdb.db_client.lookup_database
+        db = couchdb.db_client.databases[PMPDatabases.lookup]
         if '_id' not in json:
             json['_id'] = str(uuid.uuid4())
         db.create_document(json)
@@ -78,7 +80,7 @@ def create_lookup_items():
 def update_lookup_items():
     if request.content_type == 'application/json':
         json = request.json
-        db = couchdb.db_client.lookup_database
+        db = couchdb.db_client.databases[PMPDatabases.lookup]
         document = get_item(json['_id'])
         document['name'] = json['name']
         document.save()
@@ -94,7 +96,7 @@ def update_lookup_items():
 @lookup_blueprint.route('/pmp/lookup-items/id/<lookup_id>', methods=['DELETE'])
 def remove_lookup_items(lookup_id):
     connector = couchdb.db_client
-    db = couchdb.db_client.lookup_database
+    db = couchdb.db_client.databases[PMPDatabases.lookup]
     if lookup_id in db:
         with Document(db, lookup_id) as document:
             document['_deleted'] = True
@@ -114,8 +116,8 @@ def get_item(lookup_id):
     :param lookup_id:
     :return: Couchdb document
     """
-    connector = couchdb.db_client
-    document = Document(connector.lookup_database, lookup_id)
+    db = couchdb.db_client.databases[PMPDatabases.lookup]
+    document = Document(db, lookup_id)
     document.fetch()
     return document
 
@@ -129,14 +131,14 @@ def get_item_codes(lookup_id_list, type):
     :param lookup_id_list:
     :return: Couchdb document(s)
     """
-    connector = couchdb.db_client
+    db = couchdb.db_client.databases[PMPDatabases.lookup]
     lookup_list = lookup_id_list.split(',')
     if len(lookup_list) < 2:
         selector = {
             'code': lookup_list[0],
             'type': type
         }
-        docs = connector.lookup_database.get_query_result(selector)
+        docs = db.get_query_result(selector)
         return jsonify(docs[:])
     else:
         value_list = list()
@@ -149,7 +151,7 @@ def get_item_codes(lookup_id_list, type):
                 },
                 'type': type
             }
-            docs = connector.lookup_database.get_query_result(selector)
+            docs = db.get_query_result(selector)
             return jsonify(docs[:])
         else:
             return_docs = list()
@@ -161,7 +163,7 @@ def get_item_codes(lookup_id_list, type):
                     },
                     'type': type
                 }
-                docs = connector.lookup_database.get_query_result(selector)
+                docs = db.get_query_result(selector)
                 for doc in docs[:]:
                     return_docs.append(doc)
             return jsonify(return_docs)
@@ -174,8 +176,8 @@ def get_item_list(view_name):
     :param view_name:
     :return: json array of metadata associated to the view
     """
-    connector = couchdb.db_client
-    design = connector.lookup_database.get_design_document('_design/lookup')
+    db = couchdb.db_client.databases[PMPDatabases.lookup]
+    design = db.get_design_document('_design/lookup')
     view = design.get_view(view_name)
     result_items = jsonify(view.result[:])
     return_docs = list()
