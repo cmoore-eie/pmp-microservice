@@ -1,0 +1,25 @@
+version: '3'
+services:
+  pmp:
+    build:
+      context: ./pmp-microservices
+    ports:
+      - '5001:5000'
+    networks:
+      - pmp-network
+
+  couchserver:
+    image: couchdb
+    restart: always
+    ports:
+      - '5984:5984'
+    networks:
+      - pmp-network
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin
+    volumes:
+      - ./dbdata/opt/couchdb/data
+network:
+  driver: bridge
+  name: pmp-network
