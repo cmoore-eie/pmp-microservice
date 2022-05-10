@@ -1,4 +1,4 @@
-FROM python:3.10-buster as base
+FROM python:3.10-buster
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
@@ -21,4 +21,3 @@ USER appuser
 COPY . .
 ENV PYTHONPATH=.
 ENTRYPOINT FLASK_APP=/home/appuser/services/service.py flask run --host=0.0.0.0
-# CMD ["python"]
