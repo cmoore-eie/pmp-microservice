@@ -1,57 +1,27 @@
 import uuid
-from cloudant.document import Document
 from flask import Blueprint, jsonify, request
 from database import couchdb
+from database.common import read, delete, create, update
+from services.pmp_databases import PMPDatabases
 
 condition_logic_blueprint = Blueprint('conditionlogic_blueprint', __name__)
 
 
-@condition_logic_blueprint.route('/pmp/condition-logic', methods=['GET'])
-def find_virtual_products():
-    return jsonify({'Hello Condition Logic': 'All'})
-
-
 @condition_logic_blueprint.route('/pmp/condition-logic', methods=['POST'])
-def update_lookup_items():
-    if request.content_type == 'application/json':
-        json = request.json
-        db = couchdb.db_client.condition_logic_database
-        if '_id' not in json:
-            json['_id'] = str(uuid.uuid4())
-        db.create_document(json)
-        resp = jsonify(json)
-        resp.status_code = 200
-        return resp
-    else:
-        resp = jsonify('Unsupported Content Type')
-        resp.status_code = 400
-        return resp
+def create_item():
+    return create(couchdb.db_client.databases[PMPDatabases.condition_logic], request)
 
 
-@condition_logic_blueprint.route('/pmp/condition-logic/<condition_logic_id>', methods=['GET'])
-def get_condition_logic(condition_logic_id):
-    document = get_document(condition_logic_id)
-    return document
+@condition_logic_blueprint.route('/pmp/condition-logic/<item_uuid>', methods=['GET'])
+def read_item(item_uuid):
+    return read(couchdb.db_client.databases[PMPDatabases.condition_logic], item_uuid)
 
 
-@condition_logic_blueprint.route('/pmp/condition-logic/id/<condition_logic_id>', methods=['DELETE'])
-def remove_condition_logic(lookup_id):
-    connector = couchdb.db_client
-    db = couchdb.db_client.condition_logic_database
-    if lookup_id in db:
-        with Document(db, lookup_id) as document:
-            document['_deleted'] = True
-            resp = jsonify(f'Document deleted : {lookup_id}')
-            resp.status_code = 200
-            return resp
-    else:
-        resp = jsonify('Invalid Document')
-        resp.status_code = 400
-        return resp
+@condition_logic_blueprint.route('/pmp/condition-logic', methods=['PUT'])
+def update_item():
+    return update(couchdb.db_client.databases[PMPDatabases.condition_logic], request)
 
 
-def get_document(lookup_id):
-    connector = couchdb.db_client
-    document = Document(connector.condition_logic_database, lookup_id)
-    document.fetch()
-    return document
+@condition_logic_blueprint.route('/pmp/condition-logic/<item_uuid>', methods=['DELETE'])
+def delete_item(item_uuid):
+    return delete(couchdb.db_client.databases[PMPDatabases.condition_logic], item_uuid)

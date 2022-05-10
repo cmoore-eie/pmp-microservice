@@ -1,17 +1,14 @@
 import math
-import uuid
 
 from cloudant.document import Document
 from flask import Blueprint, jsonify, request
 from database import couchdb
+from database.common import create, read, update, delete
 from services.pmp_databases import PMPDatabases
 
 lookup_blueprint = Blueprint('lookup_blueprint', __name__)
 
 
-#
-# General
-#
 @lookup_blueprint.route('/pmp/lookup-types', methods=['GET'])
 def list_lookup_types():
     db = couchdb.db_client.databases[PMPDatabases.lookup]
@@ -40,73 +37,29 @@ def get_lookup_items_by_code(lookup_type, lookup_id):
 
 
 @lookup_blueprint.route('/pmp/lookup-items/view/<view_name>', methods=['GET'])
-def list_lookup_items_by_view(view_name):
+def list_items_by_view(view_name):
     if isinstance(view_name, str):
         return get_item_list(view_name)
 
 
-@lookup_blueprint.route('/pmp/lookup-items/id/<lookup_id>', methods=['GET'])
-def get_lookup_items(lookup_id):
-    if isinstance(lookup_id, str):
-        db = couchdb.db_client.databases[PMPDatabases.lookup]
-        with Document(db, lookup_id) as document:
-            try:
-                document.fetch()
-                return document
-            except:
-                resp = jsonify(f'Document does not exist : {lookup_id}')
-                resp.status_code = 400
-                return resp
-
-
 @lookup_blueprint.route('/pmp/lookup-items', methods=['POST'])
-def create_lookup_items():
-    if request.content_type == 'application/json':
-        json = request.json
-        db = couchdb.db_client.databases[PMPDatabases.lookup]
-        if '_id' not in json:
-            json['_id'] = str(uuid.uuid4())
-        db.create_document(json)
-        resp = jsonify(json)
-        resp.status_code = 200
-        return resp
-    else:
-        resp = jsonify('Unsupported Content Type')
-        resp.status_code = 400
-        return resp
+def create_item():
+    return create(couchdb.db_client.databases[PMPDatabases.lookup], request)
+
+
+@lookup_blueprint.route('/pmp/lookup-items/<item_uuid>', methods=['GET'])
+def read_item(item_uuid):
+    return read(couchdb.db_client.databases[PMPDatabases.lookup], item_uuid)
 
 
 @lookup_blueprint.route('/pmp/lookup-items', methods=['PUT'])
-def update_lookup_items():
-    if request.content_type == 'application/json':
-        json = request.json
-        db = couchdb.db_client.databases[PMPDatabases.lookup]
-        document = get_item(json['_id'])
-        document['name'] = json['name']
-        document.save()
-        resp = jsonify(json)
-        resp.status_code = 200
-        return resp
-    else:
-        resp = jsonify('Unsupported Content Type')
-        resp.status_code = 400
-        return resp
+def update_item():
+    return update(couchdb.db_client.databases[PMPDatabases.lookup], request)
 
 
-@lookup_blueprint.route('/pmp/lookup-items/id/<lookup_id>', methods=['DELETE'])
-def remove_lookup_items(lookup_id):
-    connector = couchdb.db_client
-    db = couchdb.db_client.databases[PMPDatabases.lookup]
-    if lookup_id in db:
-        with Document(db, lookup_id) as document:
-            document['_deleted'] = True
-            resp = jsonify(f'Document deleted : {lookup_id}')
-            resp.status_code = 200
-            return resp
-    else:
-        resp = jsonify('Invalid Document')
-        resp.status_code = 400
-        return resp
+@lookup_blueprint.route('/pmp/lookup-items/<item_uuid>', methods=['DELETE'])
+def delete_item(item_uuid):
+    return delete(couchdb.db_client.databases[PMPDatabases.lookup], item_uuid)
 
 
 def get_item(lookup_id):

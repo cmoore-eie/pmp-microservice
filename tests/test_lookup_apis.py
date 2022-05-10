@@ -20,7 +20,7 @@ class LookupTest(unittest.TestCase):
         url = f'/pmp/lookup-items/type/Test'
         response = self.tester.get(url)
         for item in response.json:
-            url = f'/pmp/lookup-items/id/{item.get("_id")}'
+            url = f'/pmp/lookup-items/{item.get("_id")}'
             response = self.tester.delete(url)
         pass
 
@@ -88,7 +88,7 @@ class LookupTest(unittest.TestCase):
         #
         # Fetch the document
         #
-        url = f'/pmp/lookup-items/id/{item_uuid}'
+        url = f'/pmp/lookup-items/{item_uuid}'
         response = self.tester.get(url)
         item = response.json
         #
@@ -102,7 +102,7 @@ class LookupTest(unittest.TestCase):
         #
         # Fetch and Check
         #
-        url = f'/pmp/lookup-items/id/{item_uuid}'
+        url = f'/pmp/lookup-items/{item_uuid}'
         response = self.tester.get(url)
         item = response.json
         self.assertEqual(item['name'], 'new name', f'while processing {url}')
@@ -133,7 +133,7 @@ class LookupTest(unittest.TestCase):
         statuscode = response.status_code
         self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
         print(f'Deleting document : {item_uuid}')
-        url = f'/pmp/lookup-items/id/{item_uuid}'
+        url = f'/pmp/lookup-items/{item_uuid}'
         response = self.tester.delete(url)
         statuscode = response.status_code
         self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
