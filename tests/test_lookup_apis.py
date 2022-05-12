@@ -150,6 +150,15 @@ class LookupTest(unittest.TestCase):
         statuscode = response.status_code
         self.assertTrue(HttpStatus.is_client_error(statuscode), f'while processing {url}')
 
+
+    def test_search(self):
+        url = f'/pmp/lookup-items/search'
+        data = {'type': 'AttributeValueType_PMP'}
+        data_string = jsonpickle.encode(data)
+        response = self.tester.post(url, headers={'Content-Type': 'application/json'}, data=data_string)
+        statuscode = response.status_code
+        self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
+
     def item_response(self, item_url, item_id):
         url = f'/pmp/{item_url}/{item_id}'
         test_response = self.tester.get(url)

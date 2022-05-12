@@ -1,7 +1,7 @@
 import uuid
 from flask import Blueprint, jsonify, request
 from database import couchdb
-from database.common import create, read, update, delete
+from database.common import create, read, update, delete, search
 from services.pmp_databases import PMPDatabases
 
 external_product_blueprint = Blueprint('external_product_blueprint', __name__)
@@ -25,3 +25,8 @@ def update_item():
 @external_product_blueprint.route('/pmp/external-products/<item_uuid>', methods=['DELETE'])
 def delete_item(item_uuid):
     return delete(couchdb.db_client.databases[PMPDatabases.external_product], item_uuid)
+
+
+@external_product_blueprint.route('/pmp/external-products/search', methods=['POST'])
+def search_items():
+    return search(couchdb.db_client.databases[PMPDatabases.external_product], request)

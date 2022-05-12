@@ -5,10 +5,20 @@ from flask import jsonify
 
 
 def create(db, request):
+    """
+    Create a new item in the database provided, the item must be a json string. The _id of the document should
+    be set, if no the item_identifier is used otherwise a new _id is created.
+    :param db:
+    :param request:
+    :return:
+    """
     if request.content_type == 'application/json':
         json = request.json
         if '_id' not in json:
-            json['_id'] = str(uuid.uuid4())
+            if 'item_identifier' in json:
+                json['_id'] = json['item_identifier']
+            else:
+                json['_id'] = str(uuid.uuid4())
         db.create_document(json)
         resp = jsonify(json)
         resp.status_code = 200
@@ -20,6 +30,12 @@ def create(db, request):
 
 
 def read(db, item_uuid):
+    """
+    Read an item from the database using the _id uuid
+    :param db:
+    :param item_uuid:
+    :return:
+    """
     if isinstance(item_uuid, str):
         with Document(db, item_uuid) as document:
             try:
@@ -32,6 +48,13 @@ def read(db, item_uuid):
 
 
 def update(db, request):
+    """
+    Updates an existing item in the database, Only the fields specified in the json input are checked
+    for changes. _id and _rev attributes will not be checked.
+    :param db:
+    :param request:
+    :return:
+    """
     if request.content_type == 'application/json':
         json = request.json
         document = read(db, json['_id'])
@@ -50,6 +73,12 @@ def update(db, request):
 
 
 def delete(db, item_uuid):
+    """
+    Delete an item from the supplied database that has the _id of the provided uuid
+    :param db:
+    :param item_uuid:
+    :return:
+    """
     if item_uuid in db:
         with Document(db, item_uuid) as document:
             document['_deleted'] = True
@@ -60,3 +89,64 @@ def delete(db, item_uuid):
         resp = jsonify('Invalid Document')
         resp.status_code = 400
         return resp
+
+
+def find(db, selector):
+    """
+    Find extracts all the documents from the given database what match the criteria in the selector,
+    this makes use of bookmarks to repeatedly extract results.
+    :param db:
+    :param selector:
+    :return:
+    """
+    return_docs = list()
+    result = db.get_query_result(selector, raw_result=True)
+    while len(result['docs']) > 0:
+        bookmark = result['bookmark']
+        return_docs.extend(result['docs'])
+        result = db.get_query_result(selector, raw_result=True, bookmark=bookmark)
+    return jsonify(return_docs)
+
+
+def find_all(db):
+    """
+    Find extracts all the documents from the given database what match the criteria in the selector,
+    this makes use of bookmarks to repeatedly extract results.
+    :param db:
+    :param selector:
+    :return:
+    """
+    return_docs = list()
+    result = db.all_docs(include_docs=True)
+    for row in result.get('rows'):
+        return_docs.append(row['doc'])
+        # result = db.get_query_result(selector, raw_result=True, bookmark=bookmark)
+    return jsonify(return_docs)
+
+
+def search(db, request):
+    """
+    Searches the provided database for records that match the criteria supplied as a json stringd.
+    Search gets the criteria via the data in the request and builds the selector
+    to pass to the find function.
+    :param db:
+    :param request:
+    :return:
+    """
+    if request.content_type == 'application/json':
+        if len(request.data) == 0:
+            return find_all(db)
+        else:
+            json = request.json
+            selector = {}
+            for key, value in json.items():
+                selector[key] = value
+            return find(db, selector)
+    else:
+        resp = jsonify('Unsupported Content Type')
+        resp.status_code = 400
+        return resp
+
+def search_all(db):
+        return find_all(db)
+

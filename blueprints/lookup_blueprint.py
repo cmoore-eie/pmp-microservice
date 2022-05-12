@@ -1,9 +1,7 @@
-import math
-
 from cloudant.document import Document
 from flask import Blueprint, jsonify, request
 from database import couchdb
-from database.common import create, read, update, delete
+from database.common import create, read, update, delete, find, search
 from services.pmp_databases import PMPDatabases
 
 lookup_blueprint = Blueprint('lookup_blueprint', __name__)
@@ -22,12 +20,10 @@ def list_lookup_types():
 def list_lookup_items(lookup_type):
     db = couchdb.db_client.databases[PMPDatabases.lookup]
     if isinstance(lookup_type, str):
-        connector = couchdb.db_client
         selector = {
             'type': lookup_type
         }
-        docs = db.get_query_result(selector)
-        return jsonify(docs[:])
+        return find(db, selector)
 
 
 @lookup_blueprint.route('/pmp/lookup-items/type/<lookup_type>/codes/<lookup_id>', methods=['GET'])
@@ -62,6 +58,11 @@ def delete_item(item_uuid):
     return delete(couchdb.db_client.databases[PMPDatabases.lookup], item_uuid)
 
 
+@lookup_blueprint.route('/pmp/lookup-items/search', methods=['POST'])
+def search_items():
+    return search(couchdb.db_client.databases[PMPDatabases.lookup], request)
+
+
 def get_item(lookup_id):
     """
     Generic function to extract a single document from the database, this extracts the document
@@ -86,40 +87,16 @@ def get_item_codes(lookup_id_list, type):
     """
     db = couchdb.db_client.databases[PMPDatabases.lookup]
     lookup_list = lookup_id_list.split(',')
-    if len(lookup_list) < 2:
-        selector = {
-            'code': lookup_list[0],
-            'type': type
-        }
-        docs = db.get_query_result(selector)
-        return jsonify(docs[:])
-    else:
-        value_list = list()
-        for item in lookup_list:
-            value_list.append(item)
-        if len(value_list) < 26:
-            selector = {
-                'code': {
-                    '$in': value_list
-                },
-                'type': type
-            }
-            docs = db.get_query_result(selector)
-            return jsonify(docs[:])
-        else:
-            return_docs = list()
-            chunk_loop = int(math.ceil(len(value_list) / 25))
-            for i in range(chunk_loop):
-                selector = {
-                    'code': {
-                        '$in': chunk_list(value_list, i)
-                    },
-                    'type': type
-                }
-                docs = db.get_query_result(selector)
-                for doc in docs[:]:
-                    return_docs.append(doc)
-            return jsonify(return_docs)
+    value_list = list()
+    for item in lookup_list:
+        value_list.append(item)
+    selector = {
+        'code': {
+            '$in': value_list
+        },
+        'type': type
+    }
+    return find(db, selector)
 
 
 def get_item_list(view_name):

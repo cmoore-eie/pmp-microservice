@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from database import couchdb
-from database.common import read, delete, update, create
+from database.common import read, delete, update, create, search
 from services.pmp_databases import PMPDatabases
 
 scheme_blueprint = Blueprint('scheme_blueprint', __name__)
@@ -25,3 +25,8 @@ def update_item():
 @scheme_blueprint.route('/pmp/schemes/<item_uuid>', methods=['DELETE'])
 def delete_item(item_uuid):
     return delete(couchdb.db_client.databases[PMPDatabases.scheme], item_uuid)
+
+
+@scheme_blueprint.route('/pmp/schemes/search', methods=['POST'])
+def search_items():
+    return search(couchdb.db_client.databases[PMPDatabases.scheme], request)

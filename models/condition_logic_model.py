@@ -12,6 +12,8 @@ class ConditionLogic(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleE
         self.effective_date = datetime.datetime.now()
         self.base_type = PMPTypes.condition_logic.value
         self.logic_code = None
+        self.create_date = None
+        self.update_time = None
 
     def to_json(self):
         return jsonpickle.encode(self, unpicklable=False)

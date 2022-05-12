@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 from flask_restful import abort
 
 from database import couchdb
-from database.common import delete, update, read, create
+from database.common import delete, update, read, create, search
 from services.pmp_databases import PMPDatabases
 
 virtual_product_blueprint = Blueprint('virtualproduct_blueprint', __name__)
@@ -19,6 +19,11 @@ def create_item():
 @virtual_product_blueprint.route('/pmp/virtual-products/<item_uuid>', methods=['GET'])
 def read_item(item_uuid):
     return read(couchdb.db_client.databases[PMPDatabases.scheme], item_uuid)
+
+
+@virtual_product_blueprint.route('/pmp/virtual-products/search', methods=['POST'])
+def search_items():
+    return search(couchdb.db_client.databases[PMPDatabases.virtual_productscheme], request)
 
 
 @virtual_product_blueprint.route('/pmp/virtual-products', methods=['PUT'])
