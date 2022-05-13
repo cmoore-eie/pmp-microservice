@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, g
 
+from blueprints.common_blueprint import common_blueprint
 from blueprints.condition_logic_blueprint import condition_logic_blueprint
 from blueprints.contract_blueprint import contract_blueprint
 from blueprints.external_product_blueprint import external_product_blueprint
@@ -18,6 +19,7 @@ app.register_blueprint(contract_blueprint)
 app.register_blueprint(external_product_blueprint)
 app.register_blueprint(general_term_blueprint)
 app.register_blueprint(negotiation_blueprint)
+app.register_blueprint(common_blueprint)
 
 
 @app.route("/")

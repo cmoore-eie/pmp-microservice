@@ -1,7 +1,7 @@
 import datetime
 import jsonpickle as jsonpickle
 from models.delegate_model import ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated
-from services.pmptypes import PMPTypes
+from services.pmptypes import PMPBaseTypes
 
 
 class ConditionLogic(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated):
@@ -10,7 +10,7 @@ class ConditionLogic(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleE
         self.name = None
         self.product_code = None
         self.effective_date = datetime.datetime.now()
-        self.base_type = PMPTypes.condition_logic.value
+        self.base_type = PMPBaseTypes.condition_logic.value
         self.logic_code = None
         self.create_date = None
         self.update_time = None
