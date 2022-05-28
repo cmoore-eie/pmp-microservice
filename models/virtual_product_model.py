@@ -1,18 +1,19 @@
 import datetime
 import jsonpickle as jsonpickle
 from models.delegate_model import ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated
-from services.pmptypes import PMPTypes
+from services.pmptypes import PMPBaseTypes
 
 
 class VirtualProduct(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated):
     def __init__(self):
         super(VirtualProduct, self).__init__()
+        effective_date = datetime.datetime
         self.allow_affinity = False
         self.allow_campaign = False
         self.name = None
         self.product_code = None
-        self.effective_date = datetime.datetime.now()
-        self.base_type = PMPTypes.virtual_product.value
+        self.effective_date = effective_date.now()
+        self.base_type = PMPBaseTypes.virtual_product.value
         self.virtual_product_type = None
         self.virtual_product_categories: list[VirtualProductCategory] = list()
         self.virtual_product_contracts: list[VirtualProductContract] = list()
@@ -43,7 +44,7 @@ class VirtualProduct(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleE
 class VirtualProductCategory(ItemLinkDelegate):
     def __init__(self):
         super(VirtualProductCategory, self).__init__()
-        self.base_type = PMPTypes.virtual_product_category.value
+        self.base_type = PMPBaseTypes.virtual_product_category.value
         self.name = None
         self.code = None
         self.priority = 0
@@ -52,17 +53,17 @@ class VirtualProductCategory(ItemLinkDelegate):
 class VirtualProductContract(ItemLinkDelegate):
     def __init__(self):
         super(VirtualProductContract, self).__init__()
-        self.base_type = PMPTypes.virtual_product_contract.value
+        self.base_type = PMPBaseTypes.virtual_product_contract.value
 
 
 class VirtualProductFlavour(ItemLinkDelegate, SimpleEffDated):
     def __init__(self):
         super(VirtualProductFlavour, self).__init__()
         self.default = None
-        self.base_type = PMPTypes.virtual_product_flavour.value
+        self.base_type = PMPBaseTypes.virtual_product_flavour.value
 
 
 class VirtualProductLine(ItemLinkDelegate):
     def __init__(self):
         super(VirtualProductLine, self).__init__()
-        self.base_type = PMPTypes.virtual_product_line.value
+        self.base_type = PMPBaseTypes.virtual_product_line.value

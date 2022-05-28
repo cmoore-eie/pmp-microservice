@@ -1,5 +1,5 @@
+import datetime
 import uuid
-
 from cloudant.document import Document
 from flask import jsonify
 
@@ -7,7 +7,8 @@ from flask import jsonify
 def create(db, request):
     """
     Create a new item in the database provided, the item must be a json string. The _id of the document should
-    be set, if no the item_identifier is used otherwise a new _id is created.
+    be set, if no the item_identifier is used otherwise a new _id is created. Effective and Expiration dates
+    have their counterpart internal fields set, these are used during selection.
     :param db:
     :param request:
     :return:
@@ -19,6 +20,12 @@ def create(db, request):
                 json['_id'] = json['item_identifier']
             else:
                 json['_id'] = str(uuid.uuid4())
+                json['item_identifier'] = json['_id']
+        if 'effective_date' in json:
+            json['effective_date_internal'] = datetime.datetime.fromisoformat(json['effective_date']).timestamp()
+        if 'expiration_date' in json:
+            if json['expiration_date'] is not None:
+                json['expiration_date_internal'] = datetime.datetime.fromisoformat(json['expiration_date']).timestamp()
         db.create_document(json)
         resp = jsonify(json)
         resp.status_code = 200
@@ -126,7 +133,7 @@ def find_all(db):
 
 def search(db, request):
     """
-    Searches the provided database for records that match the criteria supplied as a json stringd.
+    Searches the provided database for records that match the criteria supplied as a json string.
     Search gets the criteria via the data in the request and builds the selector
     to pass to the find function.
     :param db:
@@ -147,6 +154,34 @@ def search(db, request):
         resp.status_code = 400
         return resp
 
-def search_all(db):
-        return find_all(db)
 
+def search_by_effective(db, request):
+    """
+    Searches the provided database for records that match the criteria supplied as a json string.
+    Search gets the criteria via the data in the request and builds the selector
+    to pass to the find function.
+    :param db:
+    :param request:
+    :return:
+    """
+    if request.content_type == 'application/json':
+        if len(request.data) == 0:
+            return find_all(db)
+        else:
+            json = request.json
+            selector = {}
+            date_selector = {}
+            if 'effective_date' in json:
+                date = datetime.date((json['effective_date']))
+                date_selector['effective_date_internal'] = {'$gte': date}
+            for key, value in json.items():
+                selector[key] = value
+            return find(db, selector)
+    else:
+        resp = jsonify('Unsupported Content Type')
+        resp.status_code = 400
+        return resp
+
+
+def search_all(db):
+    return find_all(db)

@@ -11,3 +11,8 @@ class PMPBaseTypes(Enum):
     virtual_product_line = 'Virtual Product Line'
     negotiation = 'Negotiation'
     contract = 'Contract'
+
+class PMPDesignDocument(Enum):
+    virtual_product = 'virtual-product'
+    lookup = 'lookup'
+

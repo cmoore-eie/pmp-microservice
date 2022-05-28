@@ -16,6 +16,17 @@ class VirtualProductTest(unittest.TestCase):
         self.tester = service.app.test_client(self)
         self.delete_id = []
 
+    def tearDown(self) -> None:
+        url = f'/pmp/virtual-products/search'
+        data = {'product_code': 'dummy'}
+        data_string = jsonpickle.encode(data)
+        response = self.tester.post(url, headers={'Content-Type': 'application/json'}, data=data_string)
+        for item in response.json:
+            item_id = item['_id']
+            url = f'/pmp/virtual-products/{item_id}'
+            # response = self.tester.delete(url)
+
+
     def test_create_virtual_products(self):
         virtual_product = self.virtual_model_builder.build_full()
         json_data = jsonpickle.encode(virtual_product, unpicklable=False)
@@ -41,6 +52,14 @@ class VirtualProductTest(unittest.TestCase):
         response = self.tester.post('/pmp/virtual-products')
         statuscode = response.status_code
         self.assertTrue(HttpStatus.is_client_error(statuscode))
+
+    def test_find_by_effective_date(self):
+        url = f'/pmp/virtual-products/search-effective'
+        data = {'effective_date': '2000-01-01'}
+        data_string = jsonpickle.encode(data)
+        response = self.tester.post(url, headers={'Content-Type': 'application/json'}, data=data_string)
+        statuscode = response.status_code
+        self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
 
 
 if __name__ == '__main__':

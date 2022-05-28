@@ -5,6 +5,7 @@ from cloudant.error import CloudantDatabaseException
 from dotenv import dotenv_values
 from requests.adapters import HTTPAdapter
 from database.dblookup import DBLookup
+from database.dbvirtualproduct import DBVirtualProduct
 from services.pmp_databases import PMPDatabases
 
 httpAdapter = HTTPAdapter(pool_connections=10, pool_maxsize=100)
@@ -36,6 +37,8 @@ class CouchDBConnector:
     def create_views(self, db):
         if db is PMPDatabases.lookup:
             DBLookup(self.databases[db]).create_view()
+        if db is PMPDatabases.virtual_product:
+            DBVirtualProduct(self.databases[db]).create_view()
 
     def initalize_first_use(self):
         if "_users" not in self.client:
