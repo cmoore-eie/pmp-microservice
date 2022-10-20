@@ -10,6 +10,8 @@ class VirtualProduct(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleE
         effective_date = datetime.datetime
         self.allow_affinity = False
         self.allow_campaign = False
+        self.create_time = None
+        self.update_time = None
         self.name = None
         self.product_code = None
         self.effective_date = effective_date.now()
@@ -66,4 +68,6 @@ class VirtualProductFlavour(ItemLinkDelegate, SimpleEffDated):
 class VirtualProductLine(ItemLinkDelegate):
     def __init__(self):
         super(VirtualProductLine, self).__init__()
+        self.line_code = None
+        self.available = True
         self.base_type = PMPBaseTypes.virtual_product_line.value

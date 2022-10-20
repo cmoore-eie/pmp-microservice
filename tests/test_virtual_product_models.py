@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from services.pmptypes import PMPTypes
+from services.pmptypes import PMPBaseTypes
 from tests.builders.virtual_product_builder import VirtualProductBuilder
 
 
@@ -12,7 +12,7 @@ class VirtualProductTest(unittest.TestCase):
         self.virtual_model = self.virtual_model_builder.build()
 
     def test_virtual_product_model_init(self):
-        self.assertTrue(self.virtual_model.base_type == PMPTypes.virtual_product.value)
+        self.assertTrue(self.virtual_model.base_type == PMPBaseTypes.virtual_product.value)
         self.assertTrue(self.virtual_model.version_number == 1)
         self.assertIsNone(self.virtual_model.ancestor_item_identifier)
         self.assertIsNotNone(self.virtual_model.item_identifier)

@@ -24,10 +24,6 @@ app.register_blueprint(common_blueprint)
 
 @app.route("/")
 def auth():
-    # print("The raw Authorization header")
-    # print(request.environ["HTTP_AUTHORIZATION"])
-    # print("Flask's Authorization header")
-    # print(request.authorization)
     return ""
 
 

@@ -2,7 +2,7 @@ import jsonpickle
 
 from models.delegate_model import ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated, \
     SchemeValueDelegate
-from services.pmptypes import PMPTypes
+from services.pmptypes import PMPBaseTypes
 
 
 class Scheme(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated):
@@ -10,7 +10,7 @@ class Scheme(ItemStatusDelegate, ItemDelegate, ItemLinkDelegate, SimpleEffDated)
         super(Scheme, self).__init__()
         self.name = None
         self.product_code = None
-        self.base_type = PMPTypes.scheme
+        self.base_type = PMPBaseTypes.scheme
         self.details = []
         self.producers = []
 

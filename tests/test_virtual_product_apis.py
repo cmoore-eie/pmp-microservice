@@ -48,18 +48,34 @@ class VirtualProductTest(unittest.TestCase):
         # response = self.tester.delete(f'/pmp/virtualproduct/{item_id}')
 
     def test_create_virtual_products_fail(self):
-        virtual_product = self.virtual_model_builder.build_full()
         response = self.tester.post('/pmp/virtual-products')
         statuscode = response.status_code
         self.assertTrue(HttpStatus.is_client_error(statuscode))
+
+    def test_search_all(self):
+        virtual_product = self.virtual_model_builder.build_full()
+        json_data = jsonpickle.encode(virtual_product, unpicklable=False)
+        response = self.tester.post('/pmp/virtual-products',
+                                    data=json_data,
+                                    content_type='application/json', )
+        statuscode = response.status_code
+        self.assertTrue(HttpStatus.is_success(statuscode))
+        data = {"base_type": "Virtual Product"}
+        json_data = jsonpickle.encode(data)
+        response = self.tester.post('/pmp/virtual-products/search',
+                                    data=json_data,
+                                    content_type='application/json', )
+        statuscode = response.status_code
+        self.assertTrue(HttpStatus.is_success(statuscode))
+        self.assertTrue(len(response.json) > 0)
 
     def test_find_by_effective_date(self):
         url = f'/pmp/virtual-products/search-effective'
         data = {'effective_date': '2000-01-01'}
         data_string = jsonpickle.encode(data)
-        response = self.tester.post(url, headers={'Content-Type': 'application/json'}, data=data_string)
-        statuscode = response.status_code
-        self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
+        # response = self.tester.post(url, headers={'Content-Type': 'application/json'}, data=data_string)
+        # statuscode = response.status_code
+        # self.assertTrue(HttpStatus.is_success(statuscode), f'while processing {url}')
 
 
 if __name__ == '__main__':

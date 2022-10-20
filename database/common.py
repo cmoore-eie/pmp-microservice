@@ -1,7 +1,10 @@
 import datetime
 import uuid
 from cloudant.document import Document
+from cloudant.error import CloudantDocumentException
 from flask import jsonify
+
+from constants import APPLICATION_JSON, UNSUPPORTED_CONTENT_TYPE
 
 
 def create(db, request):
@@ -13,7 +16,7 @@ def create(db, request):
     :param request:
     :return:
     """
-    if request.content_type == 'application/json':
+    if request.content_type == APPLICATION_JSON:
         json = request.json
         if '_id' not in json:
             if 'item_identifier' in json:
@@ -23,15 +26,16 @@ def create(db, request):
                 json['item_identifier'] = json['_id']
         if 'effective_date' in json:
             json['effective_date_internal'] = datetime.datetime.fromisoformat(json['effective_date']).timestamp()
-        if 'expiration_date' in json:
-            if json['expiration_date'] is not None:
-                json['expiration_date_internal'] = datetime.datetime.fromisoformat(json['expiration_date']).timestamp()
+        if 'expiration_date' in json and json['expiration_date'] is not None:
+            json['expiration_date_internal'] = datetime.datetime.fromisoformat(json['expiration_date']).timestamp()
+
+        json['create_time'] = datetime.datetime.now().isoformat()
         db.create_document(json)
         resp = jsonify(json)
         resp.status_code = 200
         return resp
     else:
-        resp = jsonify('Unsupported Content Type')
+        resp = jsonify(UNSUPPORTED_CONTENT_TYPE)
         resp.status_code = 400
         return resp
 
@@ -48,7 +52,7 @@ def read(db, item_uuid):
             try:
                 document.fetch()
                 return document
-            except:
+            except CloudantDocumentException:
                 resp = jsonify(f'Document does not exist : {item_uuid}')
                 resp.status_code = 400
                 return resp
@@ -62,19 +66,19 @@ def update(db, request):
     :param request:
     :return:
     """
-    if request.content_type == 'application/json':
+    if request.content_type == APPLICATION_JSON:
         json = request.json
         document = read(db, json['_id'])
         for key, value in json.items():
-            if not key.startswith('_'):
-                if document[key] != value:
-                    document[key] = value
+            if not key.startswith('_') and document[key] != value:
+                document[key] = value
+        json['update_time'] = datetime.datetime.now().isoformat()
         document.save()
         resp = jsonify(json)
         resp.status_code = 200
         return resp
     else:
-        resp = jsonify('Unsupported Content Type')
+        resp = jsonify(UNSUPPORTED_CONTENT_TYPE)
         resp.status_code = 400
         return resp
 
@@ -127,7 +131,6 @@ def find_all(db):
     result = db.all_docs(include_docs=True)
     for row in result.get('rows'):
         return_docs.append(row['doc'])
-        # result = db.get_query_result(selector, raw_result=True, bookmark=bookmark)
     return jsonify(return_docs)
 
 
@@ -140,7 +143,7 @@ def search(db, request):
     :param request:
     :return:
     """
-    if request.content_type == 'application/json':
+    if request.content_type == APPLICATION_JSON:
         if len(request.data) == 0:
             return find_all(db)
         else:
@@ -150,7 +153,7 @@ def search(db, request):
                 selector[key] = value
             return find(db, selector)
     else:
-        resp = jsonify('Unsupported Content Type')
+        resp = jsonify(UNSUPPORTED_CONTENT_TYPE)
         resp.status_code = 400
         return resp
 
@@ -164,7 +167,7 @@ def search_by_effective(db, request):
     :param request:
     :return:
     """
-    if request.content_type == 'application/json':
+    if request.content_type == APPLICATION_JSON:
         if len(request.data) == 0:
             return find_all(db)
         else:

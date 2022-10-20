@@ -9,9 +9,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONFAULTHANDLER 1
 ENV PMP_MICROSERVICE_CONFIG /home/appuser/.env.docker
 
-COPY Pipfile .
-COPY Pipfile.lock .
-RUN pipenv lock -r > requirements.txt
+COPY requirements.txt .
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 RUN useradd -ms /bin/bash appuser

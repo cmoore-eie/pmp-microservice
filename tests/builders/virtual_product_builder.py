@@ -11,10 +11,12 @@ class VirtualProductBuilder:
         self.virtual_product = VirtualProduct()
 
     def build(self):
+        self.virtual_product.code = 'testcode'
         self.virtual_product.product_code = 'dummy'
         self.virtual_product.name = 'dummy'
         self.virtual_product.effective_date = datetime.datetime.now()
         self.virtual_product.item_status = 'draft'
+        self.virtual_product.create_date = datetime.datetime.now()
         # url = "http://127.0.0.1:5000/pmp/APAActionTypes"
         # response = requests.request("GET", url, headers={}, data='')
         # self.virtual_product.virtual_product_type = response.json()[0].get('id')
@@ -80,4 +82,6 @@ class VirtualProductLineBuilder:
 
     def build(self):
         self.line = VirtualProductLine()
+        self.line.line_code = 'dummy code'
+        self.line.available = True
         return self.line

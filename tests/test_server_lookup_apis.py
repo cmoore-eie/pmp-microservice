@@ -8,7 +8,6 @@ from models.lookup_model import Lookup
 from services import service
 from services.http_status import HttpStatus
 from services.pmp_lookup import PMPLookupCodes
-from services.pmptypes import PMPTypes
 
 
 class LookupTest(unittest.TestCase):
